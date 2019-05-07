@@ -44,7 +44,6 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
 }
 
 ?>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
 
 <!DOCTYPE html>
@@ -53,6 +52,9 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Dicoding Azure Submission</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
 </head>
 <body>
     <div class="container mt-4">
@@ -67,7 +69,7 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
                         do {
                             $result = $blobClient->listBlobs($containerName, $listBlobsOptions);
                             foreach ($result->getBlobs() as $blob) {
-                                echo '<a href="#" data="'.$blob->getName().'" class="imageslct"><img src="'.$blob->getUrl().'" class="mr-3" alt="..." height="80px" class="img-thumbnail" title="'.$blob->getName().'"></a>';
+                                echo '<img src="'.$blob->getUrl().'" alt="..." height="80px" class=" imageslct mr-3" title="'.$blob->getName().'">';
                             }
 
                             $listBlobsOptions->setContinuationToken($result->getContinuationToken());
@@ -81,7 +83,7 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
             <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
                 <div class="card">
                     <div class="card-body">
-                        <p class="card-text">info (please select image)</p>
+                        <textarea id="responseTextArea" class="UIInput" style="width:580px; height:400px;">info (please select image)</textarea>
                     </div>
                 </div>
             </div>
@@ -109,4 +111,47 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
         </div>
     </div>
 </body>
+
+<script type="text/javascript">
+$('.imageslct').click(function(){
+    console.log($(this).attr("src"))
+
+        var subscriptionKey = "608bd31a2f68458ea450b5bf214359ba";
+        var uriBase =
+            "https://eastasia.api.cognitive.microsoft.com/vision/v2.0/analyze";
+ 
+        var params = {
+            "visualFeatures": "Categories,Description,Color",
+            "details": "",
+            "language": "en",
+        };
+ 
+        var sourceImageUrl = $(this).attr("src");
+        $("#responseTextArea").val("Loading...")
+        $.ajax({
+            url: uriBase + "?" + $.param(params),
+             beforeSend: function(xhrObj){
+                xhrObj.setRequestHeader("Content-Type","application/json");
+                xhrObj.setRequestHeader(
+                    "Ocp-Apim-Subscription-Key", subscriptionKey);
+            },
+ 
+            type: "POST",
+             data: '{"url": ' + '"' + sourceImageUrl + '"}',
+        })
+ 
+        .done(function(data) {
+            $("#responseTextArea").val(JSON.stringify(data, null, 2));
+        })
+ 
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            var errorString = (errorThrown === "") ? "Error. " :
+                errorThrown + " (" + jqXHR.status + "): ";
+            errorString += (jqXHR.responseText === "") ? "" :
+                jQuery.parseJSON(jqXHR.responseText).message;
+            alert(errorString);
+        });
+});
+
+</script>
 </html>
