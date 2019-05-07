@@ -1,5 +1,7 @@
 <?php
 require_once 'vendor/autoload.php';
+error_reporting(-1);
+ini_set('display_errors', 'On');
 
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
@@ -20,20 +22,13 @@ $listBlobsOptions = new ListBlobsOptions();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
-    $fileToUpload = $_FILES["image"]["name"];
-    if(move_uploaded_file($_FILES["image"]["tmp_name"],$fileToUpload)){
-        try {
-            // Getting local file so that we can upload it to Azure
-            $myfile = fopen($fileToUpload, "w") or die("Unable to open file!");
-            fclose($myfile);
-            
-            $content = fopen($fileToUpload, "r");
-            print_r($_FILES["image"]);
-            // die();
-            //Upload blob
-            // $blobClient->createBlockBlob($containerName, $fileToUpload, $content);
+$target_dir = "uploads/";
+$fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
 
-        
+    if(move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $fileToUpload)){
+        try {
+            $content = fopen($fileToUpload, "r");     
+            $blobClient->createBlockBlob($containerName, $fileToUpload, $content);
         }
         catch(ServiceException $e){
             $code = $e->getCode();
@@ -55,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Dicoding Azure Submission</title>
@@ -99,13 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="card-header">Upload Image</div>
                     <div class="card-body">
 
-                    <form action="" method="post"  enctype="multipart/form-data">
+                    <form method="post"  enctype="multipart/form-data">
                         <div class="form-group">
                           <label for="image"></label>
-                          <input type="file" class="form-control-file" name="image" id="image" placeholder="Select Image" aria-describedby="fileHelpId">
+                          <input type="file" class="form-control-file" name="fileToUpload" id="fileToUpload" placeholder="Select Image" aria-describedby="fileHelpId">
                         </div>
                         <button type="submit" class="btn btn-primary">Upload</button>
                     </form>
+
+                    
                     </div>
                 </div>
             </div>
