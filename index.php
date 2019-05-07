@@ -64,18 +64,21 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
                 <div class="card">
                     <div class="card-header">List of file from blob storage</div>
                     <div class="card-body">
+                        <div class="row">
                         <?php 
 
                         do {
                             $result = $blobClient->listBlobs($containerName, $listBlobsOptions);
                             foreach ($result->getBlobs() as $blob) {
-                                echo '<img src="'.$blob->getUrl().'" alt="..." height="80px" class=" imageslct mr-3" title="'.$blob->getName().'">';
+                                echo '<div class="col-6">';
+                                echo '<img src="'.$blob->getUrl().'" alt="..."  class="img-thumbnail imageslct mr-3 mt-3" title="'.$blob->getName().'"></div>';
                             }
 
                             $listBlobsOptions->setContinuationToken($result->getContinuationToken());
                         } while ($result->getContinuationToken());
 
                         ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,7 +86,7 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
             <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
                 <div class="card">
                     <div class="card-body">
-                        <textarea id="responseTextArea" class="UIInput" style="width:580px; height:400px;">info (please select image)</textarea>
+                        <textarea id="response" class="form-control" rows="5" >info (please select image)</textarea>
                     </div>
                 </div>
             </div>
@@ -114,8 +117,6 @@ $fileToUpload = $target_dir . basename($_FILES["fileToUpload"]["name"]);
 
 <script type="text/javascript">
 $('.imageslct').click(function(){
-    console.log($(this).attr("src"))
-
         var subscriptionKey = "608bd31a2f68458ea450b5bf214359ba";
         var uriBase =
             "https://eastasia.api.cognitive.microsoft.com/vision/v2.0/analyze";
@@ -127,7 +128,7 @@ $('.imageslct').click(function(){
         };
  
         var sourceImageUrl = $(this).attr("src");
-        $("#responseTextArea").val("Loading...")
+        $("#response").val("Loading...")
         $.ajax({
             url: uriBase + "?" + $.param(params),
              beforeSend: function(xhrObj){
@@ -141,7 +142,9 @@ $('.imageslct').click(function(){
         })
  
         .done(function(data) {
-            $("#responseTextArea").val(JSON.stringify(data, null, 2));
+            $("#response").val(
+                "Caption :" + data.description.captions[0].text
+                );
         })
  
         .fail(function(jqXHR, textStatus, errorThrown) {
